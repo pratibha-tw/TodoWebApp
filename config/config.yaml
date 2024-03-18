@@ -1,0 +1,11 @@
+server:
+  host: "localhost"
+  port: 8080
+
+database:
+  host: "localhost"
+  port: 3306
+  name: "mysql"
+  user: "root"
+  password: "Wce@2022"
+  database: "todoapp"
