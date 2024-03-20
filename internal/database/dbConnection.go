@@ -9,7 +9,7 @@ import (
 
 func CreateConnection(cfg config.Config) *sql.DB {
 	config.GetConfigs(&cfg)
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cfg.Database.User, cfg.Database.Password,
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", cfg.Database.User, cfg.Database.Password,
 		cfg.Database.Host, cfg.Database.Port, cfg.Database.Database)
 
 	fmt.Println(connectionString)

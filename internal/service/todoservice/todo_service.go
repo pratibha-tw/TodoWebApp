@@ -8,9 +8,15 @@ import (
 type TodoService interface {
 	AddTask(t todo.Task) error
 	UpdateTask(t todo.Task) error
+	GetTaskById(id int) (todo.Task, error)
 }
 type todoService struct {
 	todoRepo todorepo.TodoRepository
+}
+
+// GetTaskById implements TodoService.
+func (todoService todoService) GetTaskById(id int) (todo.Task, error) {
+	return todoService.todoRepo.GetTaskById(id)
 }
 
 // UpdateTask implements TodoService.

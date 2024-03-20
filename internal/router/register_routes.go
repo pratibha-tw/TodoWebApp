@@ -30,5 +30,6 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB) {
 		//task api
 		group.POST("/task/add", todo_Handler.AddTask)
 		group.POST("/task/edit", todo_Handler.UpdateTask)
+		group.GET("/task/:id", todo_Handler.GetTaskDetails)
 	}
 }

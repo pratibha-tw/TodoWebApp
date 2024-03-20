@@ -10,10 +10,36 @@ import (
 type TodoRepository interface {
 	CreateTask(t todo.Task) error
 	UpdateTask(t todo.Task) error
+	GetTaskById(id int) (todo.Task, error)
 }
 
 type todoRepository struct {
 	db *sql.DB
+}
+
+// GetTaskById implements TodoRepository.
+func (todorepo todoRepository) GetTaskById(id int) (todo.Task, error) {
+	var t todo.Task
+	var description sql.NullString
+	var due_date sql.NullTime
+	var category sql.NullString
+	row := todorepo.db.QueryRow("select id,title,description,priority,due_date,user_id,category,done from tasks where id =?", id)
+	err := row.Scan(&t.ID, &t.Title, &description, &t.Priority, &due_date, &t.UserId, &category, &t.Done)
+	if err != nil {
+		fmt.Println(err)
+		return t, errors.New("provide valid task id")
+	}
+	if category.Valid {
+		t.Category = category.String
+	}
+	if description.Valid {
+		t.Description = description.String
+	}
+	if due_date.Valid {
+		t.Duedate = due_date.Time
+	}
+
+	return t, nil
 }
 
 // UpdateTask implements TodoRepository.

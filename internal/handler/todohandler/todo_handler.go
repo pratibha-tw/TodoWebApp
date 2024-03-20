@@ -2,6 +2,7 @@ package todohandler
 
 import (
 	"net/http"
+	"strconv"
 	"todoapp/internal/database/model/todo"
 	"todoapp/internal/service/todoservice"
 
@@ -11,6 +12,7 @@ import (
 type TodoHandler interface {
 	AddTask(ctx *gin.Context)
 	UpdateTask(ctx *gin.Context)
+	GetTaskDetails(ctx *gin.Context)
 }
 
 type todoHandler struct {
@@ -43,6 +45,18 @@ func (todoHandler todoHandler) UpdateTask(ctx *gin.Context) {
 	} else {
 		ctx.JSON(http.StatusCreated, "Task updated successfully")
 	}
+}
+
+func (todoHandler todoHandler) GetTaskDetails(ctx *gin.Context) {
+	id := ctx.Param("id")
+	Id, _ := strconv.Atoi(id)
+	response, err := todoHandler.todoService.GetTaskById(Id)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, response)
 }
 
 func NewTodoHandler(todoService todoservice.TodoService) TodoHandler {
