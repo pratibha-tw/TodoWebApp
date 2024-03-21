@@ -13,7 +13,7 @@ var SECRET_KEY = []byte("gosecretkey")
 
 type UserService interface {
 	Register(u user.User) error
-	Login(u user.User) (string, error)
+	Login(u user.UserCredentials) (string, error)
 }
 
 type userService struct {
@@ -21,7 +21,7 @@ type userService struct {
 }
 
 // Login implements UserService.
-func (userService userService) Login(u user.User) (string, error) {
+func (userService userService) Login(u user.UserCredentials) (string, error) {
 	res_user, err := userService.userRepo.GetUser(u.Username)
 	if err != nil {
 		return "", err

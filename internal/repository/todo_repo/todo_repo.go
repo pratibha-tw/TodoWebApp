@@ -166,8 +166,8 @@ func (todorepo todoRepository) CreateTask(t todo.Task) error {
 	// Execute the INSERT statement
 	_, err = stmt.Exec(values...)
 	if err != nil {
-		fmt.Println("Error executing query:", err)
-		return errors.New("error in creating task")
+		fmt.Println("Error executing query:")
+		return err
 	}
 
 	return nil

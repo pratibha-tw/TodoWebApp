@@ -2,7 +2,6 @@ package user_repo
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	user_model "todoapp/internal/database/model/user"
 )
@@ -41,7 +40,7 @@ func (userRepository userRepository) CreateUser(u user_model.User) error {
 	_, err = stmt.Exec(u.Username, u.Email, u.Password)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
-		return errors.New("error in creating user")
+		return err
 	}
 
 	return nil

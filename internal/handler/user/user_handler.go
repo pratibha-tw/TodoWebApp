@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"net/http"
 	user_model "todoapp/internal/database/model/user"
 	"todoapp/internal/service/userservice"
@@ -20,13 +19,12 @@ type userHandler struct {
 
 // Login implements UserHandler.
 func (u userHandler) Login(ctx *gin.Context) {
-	var userToRegister user_model.User
-	if err := ctx.ShouldBindJSON(&userToRegister); err != nil {
-		fmt.Println("error in binding json")
+	var userLogin user_model.UserCredentials
+	if err := ctx.ShouldBindJSON(&userLogin); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if res, err := u.userService.Login(userToRegister); err != nil {
+	if res, err := u.userService.Login(userLogin); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	} else {
@@ -37,7 +35,6 @@ func (u userHandler) Login(ctx *gin.Context) {
 func (u userHandler) Register(ctx *gin.Context) {
 	var userToRegister user_model.User
 	if err := ctx.ShouldBindJSON(&userToRegister); err != nil {
-		fmt.Println("error in binding json")
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -12,7 +12,7 @@ import (
 func TestUserService(t *testing.T) {
 	t.Run("ShouldRegisterUserWithUniqueUsername", func(t *testing.T) {
 		mockUserRepo := mocks.UserRepository{}
-		u := user_model.User{Username: "sample_user", Email: "sample@gmail.com", Password: "password"}
+		u := user_model.User{UserCredentials: user_model.UserCredentials{Username: "sample_use", Password: "password"}, Email: "sample@gmail.com"}
 		mockUserRepo.On("CreateUser", u).Return(nil)
 		userService := NewUserService(&mockUserRepo)
 		err := userService.Register(u)
@@ -20,8 +20,8 @@ func TestUserService(t *testing.T) {
 	})
 	t.Run("ShouldNotRegisterUserWithDuplicateUsername", func(t *testing.T) {
 		mockUserRepo := mocks.UserRepository{}
-		u1 := user_model.User{Username: "sample_user", Email: "sample@gmail.com", Password: "password"}
-		u2 := user_model.User{Username: "sample_user", Email: "sample@gmail.com", Password: "password"}
+		u1 := user_model.User{UserCredentials: user_model.UserCredentials{Username: "sample_use", Password: "password"}, Email: "sample@gmail.com"}
+		u2 := user_model.User{UserCredentials: user_model.UserCredentials{Username: "sample_use", Password: "password"}, Email: "sample@gmail.com"}
 		expectedErr := errors.New("error in creating user")
 		mockUserRepo.On("CreateUser", u2).Return(expectedErr)
 		userService := NewUserService(&mockUserRepo)
