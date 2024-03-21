@@ -9,9 +9,21 @@ type TodoService interface {
 	AddTask(t todo.Task) error
 	UpdateTask(t todo.Task) error
 	GetTaskById(id int) (todo.Task, error)
+	GetTodoList(id int) (todo.Todos, error)
+	DeleteTask(id int) error
 }
 type todoService struct {
 	todoRepo todorepo.TodoRepository
+}
+
+// DeleteTask implements TodoService.
+func (todoService todoService) DeleteTask(id int) error {
+	return todoService.todoRepo.DeleteTask(id)
+}
+
+// GetTodoList implements TodoService.
+func (todoService todoService) GetTodoList(id int) (todo.Todos, error) {
+	return todoService.todoRepo.GetTodoListByUserId(id)
 }
 
 // GetTaskById implements TodoService.

@@ -11,10 +11,68 @@ type TodoRepository interface {
 	CreateTask(t todo.Task) error
 	UpdateTask(t todo.Task) error
 	GetTaskById(id int) (todo.Task, error)
+	GetTodoListByUserId(id int) (todo.Todos, error)
+	DeleteTask(id int) error
 }
 
 type todoRepository struct {
 	db *sql.DB
+}
+
+// DeleteTask implements TodoRepository.
+func (todorepo todoRepository) DeleteTask(id int) error {
+	query := "DELETE FROM tasks where id=?"
+	stmt, err := todorepo.db.Prepare(query)
+	if err != nil {
+		fmt.Println("Error preparing statement:", err)
+		return err
+	}
+	defer stmt.Close()
+	result, err := stmt.Exec(id)
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return errors.New("error in deleting task")
+	}
+	rowAffected, _ := result.RowsAffected()
+
+	if rowAffected == 0 {
+		return errors.New("task does not present")
+	}
+	return nil
+}
+
+// GetTodoListByUserId implements TodoRepository.
+func (todorepo todoRepository) GetTodoListByUserId(id int) (todo.Todos, error) {
+	var list todo.Todos
+	rows, err := todorepo.db.Query("select id,title,description,priority,due_date,user_id,category,done from tasks where user_id =?", id)
+
+	if err != nil {
+		fmt.Println(err)
+		return list, errors.New("provide valid user id")
+	}
+
+	for rows.Next() {
+		var t todo.Task
+		var description sql.NullString
+		var due_date sql.NullTime
+		var category sql.NullString
+		err := rows.Scan(&t.ID, &t.Title, &description, &t.Priority, &due_date, &t.UserId, &category, &t.Done)
+		if err != nil {
+			fmt.Println(err)
+			return list, errors.New("error while getting task details")
+		}
+		if category.Valid {
+			t.Category = category.String
+		}
+		if description.Valid {
+			t.Description = description.String
+		}
+		if due_date.Valid {
+			t.Duedate = due_date.Time
+		}
+		list.TodoList = append(list.TodoList, t)
+	}
+	return list, nil
 }
 
 // GetTaskById implements TodoRepository.

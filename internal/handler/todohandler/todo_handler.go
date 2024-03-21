@@ -13,6 +13,8 @@ type TodoHandler interface {
 	AddTask(ctx *gin.Context)
 	UpdateTask(ctx *gin.Context)
 	GetTaskDetails(ctx *gin.Context)
+	GetTodoList(ctx *gin.Context)
+	DeleteTask(ctx *gin.Context)
 }
 
 type todoHandler struct {
@@ -58,7 +60,28 @@ func (todoHandler todoHandler) GetTaskDetails(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, response)
 }
+func (todoHandler todoHandler) GetTodoList(ctx *gin.Context) {
+	id := ctx.Param("id")
+	Id, _ := strconv.Atoi(id)
+	response, err := todoHandler.todoService.GetTodoList(Id)
 
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, response)
+}
+func (todoHandler todoHandler) DeleteTask(ctx *gin.Context) {
+	id := ctx.Param("id")
+	Id, _ := strconv.Atoi(id)
+	err := todoHandler.todoService.DeleteTask(Id)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, "Task deleted successfully")
+}
 func NewTodoHandler(todoService todoservice.TodoService) TodoHandler {
 	return &todoHandler{todoService: todoService}
 }
