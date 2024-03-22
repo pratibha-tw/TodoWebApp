@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"todoapp/internal/database/model/todo"
 )
 
@@ -11,7 +12,7 @@ type TodoRepository interface {
 	CreateTask(t todo.Task) error
 	UpdateTask(t todo.Task) error
 	GetTaskById(id int) (todo.Task, error)
-	GetTodoListByUserId(id int) (todo.Todos, error)
+	GetTodoListByUserId(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error)
 	DeleteTask(id int) error
 }
 
@@ -42,9 +43,34 @@ func (todorepo todoRepository) DeleteTask(id int) error {
 }
 
 // GetTodoListByUserId implements TodoRepository.
-func (todorepo todoRepository) GetTodoListByUserId(id int) (todo.Todos, error) {
+func (todorepo todoRepository) GetTodoListByUserId(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error) {
 	var list todo.Todos
-	rows, err := todorepo.db.Query("select id,title,description,priority,due_date,user_id,category,done from tasks where user_id =?", id)
+	query := "select id,title,description,priority,due_date,user_id,category,done from tasks where user_id =?"
+	values := []interface{}{id}
+
+	if criteria != (todo.TodoSearchCriteria{}) {
+		query += " and (title like ? or description like ? or priority = ? or category = ?)"
+		criteria.Title = strings.ReplaceAll(criteria.Title, "\"", "")
+		criteria.Description = strings.ReplaceAll(criteria.Description, "\"", "")
+		criteria.Priority = strings.ReplaceAll(criteria.Priority, "\"", "")
+		criteria.Category = strings.ReplaceAll(criteria.Category, "\"", "")
+
+		if criteria.Title != "" {
+			values = append(values, "%"+criteria.Title+"%")
+		} else {
+			values = append(values, criteria.Title)
+		}
+		if criteria.Description != "" {
+			values = append(values, "%"+criteria.Description+"%")
+		} else {
+			values = append(values, criteria.Description)
+		}
+		values = append(values, criteria.Priority, criteria.Category)
+	}
+	for _, val := range values {
+		query = strings.Replace(query, "?", fmt.Sprintf("'%v'", val), 1)
+	}
+	rows, err := todorepo.db.Query(query)
 
 	if err != nil {
 		fmt.Println(err)

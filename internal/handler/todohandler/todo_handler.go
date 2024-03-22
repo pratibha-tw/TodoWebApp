@@ -62,8 +62,17 @@ func (todoHandler todoHandler) GetTaskDetails(ctx *gin.Context) {
 }
 func (todoHandler todoHandler) GetTodoList(ctx *gin.Context) {
 	id := ctx.Param("id")
-	Id, _ := strconv.Atoi(id)
-	response, err := todoHandler.todoService.GetTodoList(Id)
+	UserId, _ := strconv.Atoi(id)
+
+	title, ok1 := ctx.GetQuery("title")
+	desc, ok2 := ctx.GetQuery("description")
+	priority, ok3 := ctx.GetQuery("priority")
+	category, ok4 := ctx.GetQuery("category")
+	var criteria todo.TodoSearchCriteria
+	if ok1 || ok2 || ok3 || ok4 {
+		criteria = todo.TodoSearchCriteria{Title: title, Description: desc, Priority: priority, Category: category}
+	}
+	response, err := todoHandler.todoService.GetTodoList(UserId, criteria)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, err.Error())
