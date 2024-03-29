@@ -88,9 +88,9 @@ func TestTodoService(t *testing.T) {
 	t.Run("ShouldReturnTodoListForGivenUser", func(t *testing.T) {
 		mockRes := todo.Todos{TodoList: []todo.Task{task, updatedTask}}
 		mockRepo := mocks.TodoRepository{}
-		mockRepo.On("GetTodoListByUserId", 1).Return(mockRes, nil)
+		mockRepo.On("GetTodoListByUserId", 1, todo.TodoSearchCriteria{}).Return(mockRes, nil)
 		todoService := NewTodoService(&mockRepo)
-		res, err := todoService.GetTodoList(1)
+		res, err := todoService.GetTodoList(1, todo.TodoSearchCriteria{})
 		assert.NoError(t, err)
 		assert.Equal(t, mockRes, res)
 	})
