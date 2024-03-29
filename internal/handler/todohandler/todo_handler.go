@@ -115,7 +115,12 @@ func (todoHandler todoHandler) DeleteTask(ctx *gin.Context) {
 	err = todoHandler.todoService.DeleteTask(Id)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err.Error())
+		switch err.Error() {
+		case "you are not authorized to peform this task":
+			ctx.JSON(http.StatusUnauthorized, err.Error())
+		default:
+			ctx.JSON(http.StatusBadRequest, err.Error())
+		}
 		return
 	}
 	ctx.JSON(http.StatusOK, "Task deleted successfully")

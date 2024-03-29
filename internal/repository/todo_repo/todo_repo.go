@@ -22,14 +22,18 @@ type todoRepository struct {
 
 // DeleteTask implements TodoRepository.
 func (todorepo todoRepository) DeleteTask(id int) error {
-	query := "DELETE FROM tasks where id=?"
+	task, err := todorepo.GetTaskById(id)
+	if err != nil {
+		return errors.New("you are not authorized to peform this task")
+	}
+	query := "DELETE FROM tasks where id=? and user_id=?"
 	stmt, err := todorepo.db.Prepare(query)
 	if err != nil {
 		fmt.Println("Error preparing statement:", err)
 		return err
 	}
 	defer stmt.Close()
-	result, err := stmt.Exec(id)
+	result, err := stmt.Exec(id, task.UserId)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
 		return errors.New("error in deleting task")
@@ -128,7 +132,11 @@ func (todorepo todoRepository) GetTaskById(id int) (todo.Task, error) {
 
 // UpdateTask implements TodoRepository.
 func (todorepo todoRepository) UpdateTask(t todo.Task) error {
-	query := "UPDATE tasks SET title=?,description=?,priority=?,category=?,due_date=?,done=? where id=?"
+	task, err := todorepo.GetTaskById(t.ID)
+	if err != nil {
+		return errors.New("you are not authorized to peform this task")
+	}
+	query := "UPDATE tasks SET title=?,description=?,priority=?,category=?,due_date=?,done=? where id=? and user_id=?"
 
 	stmt, err := todorepo.db.Prepare(query)
 	if err != nil {
@@ -137,7 +145,7 @@ func (todorepo todoRepository) UpdateTask(t todo.Task) error {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(t.Title, t.Description, t.Priority, t.Category, t.Duedate, t.Done, t.ID)
+	res, err := stmt.Exec(t.Title, t.Description, t.Priority, t.Category, t.Duedate, t.Done, t.ID, task.UserId)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
 		return errors.New("error in updating task")
