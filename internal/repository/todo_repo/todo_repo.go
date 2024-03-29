@@ -137,12 +137,16 @@ func (todorepo todoRepository) UpdateTask(t todo.Task) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(t.Title, t.Description, t.Priority, t.Category, t.Duedate, t.Done, t.ID)
+	res, err := stmt.Exec(t.Title, t.Description, t.Priority, t.Category, t.Duedate, t.Done, t.ID)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
 		return errors.New("error in updating task")
 	}
-	fmt.Println(t)
+	rowAffected, _ := res.RowsAffected()
+
+	if rowAffected == 0 {
+		return errors.New("task does not present")
+	}
 	return nil
 }
 

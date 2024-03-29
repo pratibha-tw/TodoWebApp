@@ -77,9 +77,9 @@ func (_m *TodoRepository) GetTaskById(id int) (todo.Task, error) {
 	return r0, r1
 }
 
-// GetTodoListByUserId provides a mock function with given fields: id
-func (_m *TodoRepository) GetTodoListByUserId(id int) (todo.Todos, error) {
-	ret := _m.Called(id)
+// GetTodoListByUserId provides a mock function with given fields: id, criteria
+func (_m *TodoRepository) GetTodoListByUserId(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error) {
+	ret := _m.Called(id, criteria)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTodoListByUserId")
@@ -87,17 +87,17 @@ func (_m *TodoRepository) GetTodoListByUserId(id int) (todo.Todos, error) {
 
 	var r0 todo.Todos
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int) (todo.Todos, error)); ok {
-		return rf(id)
+	if rf, ok := ret.Get(0).(func(int, todo.TodoSearchCriteria) (todo.Todos, error)); ok {
+		return rf(id, criteria)
 	}
-	if rf, ok := ret.Get(0).(func(int) todo.Todos); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(int, todo.TodoSearchCriteria) todo.Todos); ok {
+		r0 = rf(id, criteria)
 	} else {
 		r0 = ret.Get(0).(todo.Todos)
 	}
 
-	if rf, ok := ret.Get(1).(func(int) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(int, todo.TodoSearchCriteria) error); ok {
+		r1 = rf(id, criteria)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -24,11 +24,18 @@ func (u userHandler) Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if res, err := u.userService.Login(userLogin); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if jwtToken, err := u.userService.Login(userLogin); err != nil {
+		switch err.Error() {
+		case "please provide valid username/password":
+			ctx.JSON(http.StatusNotFound, err.Error())
+			return
+		case "error in JWT token generation":
+			ctx.JSON(http.StatusInternalServerError, err.Error())
+		default:
+			ctx.JSON(http.StatusBadRequest, nil)
+		}
 	} else {
-		ctx.JSON(http.StatusOK, res)
+		ctx.JSON(http.StatusOK, jwtToken)
 	}
 }
 
