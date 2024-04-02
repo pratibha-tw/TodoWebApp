@@ -10,15 +10,15 @@ type TodoService interface {
 	UpdateTask(t todo.Task) error
 	GetTaskById(id int) (todo.Task, error)
 	GetTodoList(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error)
-	DeleteTask(id int) error
+	DeleteTask(id int, userId int) error
 }
 type todoService struct {
 	todoRepo todorepo.TodoRepository
 }
 
 // DeleteTask implements TodoService.
-func (todoService todoService) DeleteTask(id int) error {
-	return todoService.todoRepo.DeleteTask(id)
+func (todoService todoService) DeleteTask(id int, userId int) error {
+	return todoService.todoRepo.DeleteTask(id, userId)
 }
 
 // GetTodoList implements TodoService.

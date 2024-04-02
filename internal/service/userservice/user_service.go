@@ -30,6 +30,7 @@ func (userService userService) Login(u user.UserCredentials) (string, error) {
 	if res_user.Username != u.Username || res_user.Password != u.Password {
 		return "", errors.New("please provide valid username/password")
 	}
+	u.UserId = res_user.UserId
 	token, err := GenerateJWT(u)
 	if err != nil {
 		return "", err
@@ -48,7 +49,7 @@ func NewUserService(userRepo user_repo.UserRepository) UserService {
 
 func GenerateJWT(u user.UserCredentials) (string, error) {
 	expirationTime := time.Now().Add(time.Minute * 5)
-	claims := user.Claims{Username: u.Username, StandardClaims: jwt.StandardClaims{
+	claims := user.Claims{UserId: u.UserId, StandardClaims: jwt.StandardClaims{
 		ExpiresAt: expirationTime.Unix(),
 	}}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
@@ -60,7 +61,7 @@ func GenerateJWT(u user.UserCredentials) (string, error) {
 	return tokenString, nil
 }
 
-func VerifyJWT(tokenString string) error {
+func VerifyJWT(tokenString string) (user.Claims, error) {
 	//parse the token
 	Claims := user.Claims{}
 	_, err := jwt.ParseWithClaims(tokenString, &Claims,
@@ -69,7 +70,7 @@ func VerifyJWT(tokenString string) error {
 		})
 
 	if err != nil {
-		return err
+		return Claims, err
 	}
-	return nil
+	return Claims, nil
 }

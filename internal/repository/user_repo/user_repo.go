@@ -18,9 +18,9 @@ type userRepository struct {
 // GetUser implements UserRepository.
 func (user_repos userRepository) GetUser(username string) (user_model.User, error) {
 	var u user_model.User
-	query := fmt.Sprintf("select username,email,password from users where username ='%s'", username)
+	query := fmt.Sprintf("select username,email,password ,id from users where username ='%s'", username)
 	row := user_repos.DB.QueryRow(query)
-	err := row.Scan(&u.Username, &u.Email, &u.Password)
+	err := row.Scan(&u.Username, &u.Email, &u.Password, &u.UserId)
 	if err != nil {
 		return u, err
 	}
