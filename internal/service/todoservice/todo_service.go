@@ -7,8 +7,8 @@ import (
 
 type TodoService interface {
 	AddTask(t todo.Task) error
-	UpdateTask(t todo.Task) error
-	GetTaskById(id int) (todo.Task, error)
+	UpdateTask(t todo.Task, userId int) error
+	GetTaskById(id int, userId int) (todo.Task, error)
 	GetTodoList(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error)
 	DeleteTask(id int, userId int) error
 }
@@ -27,13 +27,13 @@ func (todoService todoService) GetTodoList(id int, criteria todo.TodoSearchCrite
 }
 
 // GetTaskById implements TodoService.
-func (todoService todoService) GetTaskById(id int) (todo.Task, error) {
-	return todoService.todoRepo.GetTaskById(id)
+func (todoService todoService) GetTaskById(id int, userId int) (todo.Task, error) {
+	return todoService.todoRepo.GetTaskById(id, userId)
 }
 
 // UpdateTask implements TodoService.
-func (todoService todoService) UpdateTask(t todo.Task) error {
-	return todoService.todoRepo.UpdateTask(t)
+func (todoService todoService) UpdateTask(t todo.Task, userId int) error {
+	return todoService.todoRepo.UpdateTask(t, userId)
 }
 
 func (todoService todoService) AddTask(t todo.Task) error {

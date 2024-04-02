@@ -26,7 +26,7 @@ type todoHandler struct {
 }
 
 func (todoHandler todoHandler) AddTask(ctx *gin.Context) {
-	_, err := AuthenticateUser(ctx)
+	userId, err := AuthenticateUser(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, err.Error())
 		return
@@ -34,6 +34,10 @@ func (todoHandler todoHandler) AddTask(ctx *gin.Context) {
 	var t todo.Task
 	if err := ctx.ShouldBindJSON(&t); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if userId != t.UserId {
+		ctx.JSON(http.StatusForbidden, errormessages.ErrAccessDenied)
 		return
 	}
 	if err := todoHandler.todoService.AddTask(t); err != nil {
@@ -46,49 +50,54 @@ func (todoHandler todoHandler) AddTask(ctx *gin.Context) {
 }
 
 func (todoHandler todoHandler) UpdateTask(ctx *gin.Context) {
-	_, err := AuthenticateUser(ctx)
+	userId, err := AuthenticateUser(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 	var t todo.Task
 	if err := ctx.ShouldBindJSON(&t); err != nil {
-		if err != nil {
-			switch err.Error() {
-			case errormessages.ErrAccessDenied:
-				ctx.JSON(http.StatusForbidden, err.Error())
-			default:
-				ctx.JSON(http.StatusBadRequest, err.Error())
-			}
-			return
-		}
-	}
-	if err := todoHandler.todoService.UpdateTask(t); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+	if err := todoHandler.todoService.UpdateTask(t, userId); err != nil {
+
+		switch err.Error() {
+		case errormessages.ErrAccessDenied:
+			ctx.JSON(http.StatusForbidden, err.Error())
+		default:
+			ctx.JSON(http.StatusBadRequest, err.Error())
+		}
+		return
+
 	} else {
 		ctx.JSON(http.StatusOK, "Task updated successfully")
 	}
 }
 
 func (todoHandler todoHandler) GetTaskDetails(ctx *gin.Context) {
-	_, err := AuthenticateUser(ctx)
+	userId, err := AuthenticateUser(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 	id := ctx.Param("id")
 	Id, _ := strconv.Atoi(id)
-	response, err := todoHandler.todoService.GetTaskById(Id)
+	response, err := todoHandler.todoService.GetTaskById(Id, userId)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err.Error())
+		switch err.Error() {
+		case errormessages.ErrAccessDenied:
+			ctx.JSON(http.StatusForbidden, err.Error())
+		default:
+			ctx.JSON(http.StatusBadRequest, err.Error())
+		}
 		return
 	}
 	ctx.JSON(http.StatusOK, response)
 }
 func (todoHandler todoHandler) GetTodoList(ctx *gin.Context) {
-	_, err := AuthenticateUser(ctx)
+	loggedInUserId, err := AuthenticateUser(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, err.Error())
 		return
@@ -96,6 +105,10 @@ func (todoHandler todoHandler) GetTodoList(ctx *gin.Context) {
 	id := ctx.Param("id")
 	UserId, _ := strconv.Atoi(id)
 
+	if loggedInUserId != UserId {
+		ctx.JSON(http.StatusForbidden, errormessages.ErrAccessDenied)
+		return
+	}
 	title, ok1 := ctx.GetQuery("title")
 	desc, ok2 := ctx.GetQuery("description")
 	priority, ok3 := ctx.GetQuery("priority")

@@ -33,9 +33,9 @@ func TestTodoService(t *testing.T) {
 
 	t.Run("ShouldUpdateExistingTask", func(t *testing.T) {
 		mockRepo := mocks.TodoRepository{}
-		mockRepo.On("UpdateTask", updatedTask).Return(nil)
+		mockRepo.On("UpdateTask", updatedTask, 1).Return(nil)
 		todoService := NewTodoService(&mockRepo)
-		err := todoService.UpdateTask(updatedTask)
+		err := todoService.UpdateTask(updatedTask, 1)
 		assert.NoError(t, err)
 	})
 
@@ -43,17 +43,17 @@ func TestTodoService(t *testing.T) {
 		mockRepo := mocks.TodoRepository{}
 		//actual error msg is different than this msg
 		expectedErr := errors.New("task is not present")
-		mockRepo.On("UpdateTask", updatedTask).Return(expectedErr)
+		mockRepo.On("UpdateTask", updatedTask, 1).Return(expectedErr)
 		todoService := NewTodoService(&mockRepo)
-		err := todoService.UpdateTask(updatedTask)
+		err := todoService.UpdateTask(updatedTask, 1)
 		assert.Equal(t, expectedErr, err)
 	})
 
 	t.Run("ShouldReturnTaskDetailsForValidTaskId", func(t *testing.T) {
 		mockRepo := mocks.TodoRepository{}
-		mockRepo.On("GetTaskById", updatedTask.ID).Return(updatedTask, nil)
+		mockRepo.On("GetTaskById", updatedTask.ID, 1).Return(updatedTask, nil)
 		todoService := NewTodoService(&mockRepo)
-		res, err := todoService.GetTaskById(2)
+		res, err := todoService.GetTaskById(2, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, res.ID, updatedTask.ID)
 		assert.Equal(t, res.Title, updatedTask.Title)
@@ -61,9 +61,9 @@ func TestTodoService(t *testing.T) {
 	t.Run("ShouldReturnNoDetailsForInValidTaskId", func(t *testing.T) {
 		EmptyTask := todo.Task{}
 		mockRepo := mocks.TodoRepository{}
-		mockRepo.On("GetTaskById", 23).Return(EmptyTask, nil)
+		mockRepo.On("GetTaskById", 23, 1).Return(EmptyTask, nil)
 		todoService := NewTodoService(&mockRepo)
-		res, err := todoService.GetTaskById(23)
+		res, err := todoService.GetTaskById(23, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, res, EmptyTask)
 
@@ -71,17 +71,17 @@ func TestTodoService(t *testing.T) {
 
 	t.Run("ShouldDeleteTaskWithValidTaskId", func(t *testing.T) {
 		mockRepo := mocks.TodoRepository{}
-		mockRepo.On("DeleteTask", 2).Return(nil)
+		mockRepo.On("DeleteTask", 2, 1).Return(nil)
 		todoService := NewTodoService(&mockRepo)
-		err := todoService.DeleteTask(2)
+		err := todoService.DeleteTask(2, 1)
 		assert.NoError(t, err)
 	})
 	t.Run("ShouldReturnErrorWhileDeletingTaskWithInValidTaskId", func(t *testing.T) {
 		mockRepo := mocks.TodoRepository{}
 		expectedErr := errors.New("task does not present")
-		mockRepo.On("DeleteTask", 2).Return(expectedErr)
+		mockRepo.On("DeleteTask", 3, 1).Return(expectedErr)
 		todoService := NewTodoService(&mockRepo)
-		err := todoService.DeleteTask(2)
+		err := todoService.DeleteTask(3, 1)
 		assert.Equal(t, expectedErr, err)
 	})
 

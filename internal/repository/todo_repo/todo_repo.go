@@ -11,8 +11,8 @@ import (
 
 type TodoRepository interface {
 	CreateTask(t todo.Task) error
-	UpdateTask(t todo.Task) error
-	GetTaskById(id int) (todo.Task, error)
+	UpdateTask(t todo.Task, userId int) error
+	GetTaskById(id int, userId int) (todo.Task, error)
 	GetTodoListByUserId(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error)
 	DeleteTask(id int, userId int) error
 }
@@ -23,21 +23,24 @@ type todoRepository struct {
 
 // DeleteTask implements TodoRepository.
 func (todorepo todoRepository) DeleteTask(id int, userId int) error {
-	task, err := todorepo.GetTaskById(id)
+	_, err := todorepo.GetTaskById(id, userId)
 	if err != nil {
-		return errors.New(errormessages.ErrTaskNotFound)
+		switch err.Error() {
+		case errormessages.ErrAccessDenied:
+			return err
+		default:
+			return errors.New(errormessages.ErrTaskNotFound)
+		}
 	}
-	if task.UserId != userId {
-		return errors.New(errormessages.ErrAccessDenied)
-	}
-	query := "DELETE FROM tasks where id=? and user_id=?"
+
+	query := "DELETE FROM tasks where id=?"
 	stmt, err := todorepo.db.Prepare(query)
 	if err != nil {
 		fmt.Println("Error preparing statement:", err)
 		return err
 	}
 	defer stmt.Close()
-	result, err := stmt.Exec(id, userId)
+	result, err := stmt.Exec(id)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
 		return errors.New("error in deleting task")
@@ -110,7 +113,7 @@ func (todorepo todoRepository) GetTodoListByUserId(id int, criteria todo.TodoSea
 }
 
 // GetTaskById implements TodoRepository.
-func (todorepo todoRepository) GetTaskById(id int) (todo.Task, error) {
+func (todorepo todoRepository) GetTaskById(id int, userId int) (todo.Task, error) {
 	var t todo.Task
 	var description sql.NullString
 	var due_date sql.NullTime
@@ -121,6 +124,9 @@ func (todorepo todoRepository) GetTaskById(id int) (todo.Task, error) {
 		fmt.Println(err)
 		return t, errors.New(errormessages.ErrInvalidTaskId)
 	}
+	if userId != t.UserId {
+		return t, errors.New(errormessages.ErrAccessDenied)
+	}
 	if category.Valid {
 		t.Category = category.String
 	}
@@ -130,17 +136,21 @@ func (todorepo todoRepository) GetTaskById(id int) (todo.Task, error) {
 	if due_date.Valid {
 		t.Duedate = due_date.Time
 	}
-
 	return t, nil
 }
 
 // UpdateTask implements TodoRepository.
-func (todorepo todoRepository) UpdateTask(t todo.Task) error {
-	task, err := todorepo.GetTaskById(t.ID)
+func (todorepo todoRepository) UpdateTask(t todo.Task, userId int) error {
+	_, err := todorepo.GetTaskById(t.ID, userId)
 	if err != nil {
-		return errors.New("you are not authorized to peform this task")
+		switch err.Error() {
+		case errormessages.ErrAccessDenied:
+			return err
+		default:
+			return errors.New(errormessages.ErrTaskNotFound)
+		}
 	}
-	query := "UPDATE tasks SET title=?,description=?,priority=?,category=?,due_date=?,done=? where id=? and user_id=?"
+	query := "UPDATE tasks SET title=?,description=?,priority=?,category=?,due_date=?,done=? where id=?"
 
 	stmt, err := todorepo.db.Prepare(query)
 	if err != nil {
@@ -149,7 +159,7 @@ func (todorepo todoRepository) UpdateTask(t todo.Task) error {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(t.Title, t.Description, t.Priority, t.Category, t.Duedate, t.Done, t.ID, task.UserId)
+	res, err := stmt.Exec(t.Title, t.Description, t.Priority, t.Category, t.Duedate, t.Done, t.ID)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
 		return errors.New(errormessages.ErrTaskUpdate)

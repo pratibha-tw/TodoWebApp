@@ -31,17 +31,17 @@ func (_m *TodoService) AddTask(t todo.Task) error {
 	return r0
 }
 
-// DeleteTask provides a mock function with given fields: id
-func (_m *TodoService) DeleteTask(id int) error {
-	ret := _m.Called(id)
+// DeleteTask provides a mock function with given fields: id, userId
+func (_m *TodoService) DeleteTask(id int, userId int) error {
+	ret := _m.Called(id, userId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteTask")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(int) error); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(int, int) error); ok {
+		r0 = rf(id, userId)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -49,9 +49,9 @@ func (_m *TodoService) DeleteTask(id int) error {
 	return r0
 }
 
-// GetTaskById provides a mock function with given fields: id
-func (_m *TodoService) GetTaskById(id int) (todo.Task, error) {
-	ret := _m.Called(id)
+// GetTaskById provides a mock function with given fields: id, userId
+func (_m *TodoService) GetTaskById(id int, userId int) (todo.Task, error) {
+	ret := _m.Called(id, userId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTaskById")
@@ -59,17 +59,17 @@ func (_m *TodoService) GetTaskById(id int) (todo.Task, error) {
 
 	var r0 todo.Task
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int) (todo.Task, error)); ok {
-		return rf(id)
+	if rf, ok := ret.Get(0).(func(int, int) (todo.Task, error)); ok {
+		return rf(id, userId)
 	}
-	if rf, ok := ret.Get(0).(func(int) todo.Task); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(int, int) todo.Task); ok {
+		r0 = rf(id, userId)
 	} else {
 		r0 = ret.Get(0).(todo.Task)
 	}
 
-	if rf, ok := ret.Get(1).(func(int) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
+		r1 = rf(id, userId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -105,17 +105,17 @@ func (_m *TodoService) GetTodoList(id int, criteria todo.TodoSearchCriteria) (to
 	return r0, r1
 }
 
-// UpdateTask provides a mock function with given fields: t
-func (_m *TodoService) UpdateTask(t todo.Task) error {
-	ret := _m.Called(t)
+// UpdateTask provides a mock function with given fields: t, userId
+func (_m *TodoService) UpdateTask(t todo.Task, userId int) error {
+	ret := _m.Called(t, userId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateTask")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(todo.Task) error); ok {
-		r0 = rf(t)
+	if rf, ok := ret.Get(0).(func(todo.Task, int) error); ok {
+		r0 = rf(t, userId)
 	} else {
 		r0 = ret.Error(0)
 	}
