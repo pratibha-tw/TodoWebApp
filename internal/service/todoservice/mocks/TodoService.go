@@ -49,6 +49,26 @@ func (_m *TodoService) DeleteTask(id int, userId int) error {
 	return r0
 }
 
+// GetNotifications provides a mock function with given fields: userId
+func (_m *TodoService) GetNotifications(userId int) []todo.Notification {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNotifications")
+	}
+
+	var r0 []todo.Notification
+	if rf, ok := ret.Get(0).(func(int) []todo.Notification); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]todo.Notification)
+		}
+	}
+
+	return r0
+}
+
 // GetTaskById provides a mock function with given fields: id, userId
 func (_m *TodoService) GetTaskById(id int, userId int) (todo.Task, error) {
 	ret := _m.Called(id, userId)
@@ -75,6 +95,11 @@ func (_m *TodoService) GetTaskById(id int, userId int) (todo.Task, error) {
 	}
 
 	return r0, r1
+}
+
+// GetTasksNearDueDateButNotCompleted provides a mock function with given fields:
+func (_m *TodoService) GetTasksNearDueDateButNotCompleted() {
+	_m.Called()
 }
 
 // GetTodoList provides a mock function with given fields: id, criteria

@@ -19,6 +19,7 @@ type TodoHandler interface {
 	GetTaskDetails(ctx *gin.Context)
 	GetTodoList(ctx *gin.Context)
 	DeleteTask(ctx *gin.Context)
+	GetNotifications(ctx *gin.Context)
 }
 
 type todoHandler struct {
@@ -145,6 +146,24 @@ func (todoHandler todoHandler) DeleteTask(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, "Task deleted successfully")
+}
+
+func (todoHandler todoHandler) GetNotifications(ctx *gin.Context) {
+	loggedInUserId, err := AuthenticateUser(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+	id := ctx.Param("id")
+	UserId, _ := strconv.Atoi(id)
+
+	if loggedInUserId != UserId {
+		ctx.JSON(http.StatusForbidden, errormessages.ErrAccessDenied)
+		return
+	}
+	response := todoHandler.todoService.GetNotifications(UserId)
+
+	ctx.JSON(http.StatusOK, response)
 }
 func NewTodoHandler(todoService todoservice.TodoService) TodoHandler {
 	return &todoHandler{todoService: todoService}

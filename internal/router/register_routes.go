@@ -21,6 +21,7 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB) {
 	todoRepo := todorepo.NewTodoRepository(dbConnect)
 	todoService := todoservice.NewTodoService(todoRepo)
 	todo_Handler := todohandler.NewTodoHandler(todoService)
+	go todoService.GetTasksNearDueDateButNotCompleted()
 	group := engine.Group("todoapp/api")
 	{
 		//User apis
@@ -33,5 +34,6 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB) {
 		group.GET("/task/:id", todo_Handler.GetTaskDetails)
 		group.GET("/user/:id/tasks", todo_Handler.GetTodoList)
 		group.DELETE("/task/delete/:id", todo_Handler.DeleteTask)
+		group.GET("user/:id/notifications", todo_Handler.GetNotifications)
 	}
 }

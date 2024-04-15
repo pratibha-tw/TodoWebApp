@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
+	"sync"
 	"todoapp/internal/database/model/todo"
 	errormessages "todoapp/internal/helpers/error_messages"
 )
@@ -15,10 +17,78 @@ type TodoRepository interface {
 	GetTaskById(id int, userId int) (todo.Task, error)
 	GetTodoListByUserId(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error)
 	DeleteTask(id int, userId int) error
+	GetNotifications(userId int) []todo.Notification
+	GetTasksNearDueDateButNotCompleted()
+	AddNotification(wg *sync.WaitGroup, mu *sync.Mutex, data todo.Task) error
 }
 
 type todoRepository struct {
 	db *sql.DB
+}
+
+func (todorepo todoRepository) GetNotifications(userId int) []todo.Notification {
+	var notifications []todo.Notification
+	query := "select id,task_id,details,due_date from notifications where user_id=? and created_at >= CURDATE()"
+	rows, err := todorepo.db.Query(query, userId)
+
+	if err != nil {
+		fmt.Println(err)
+		return notifications
+	}
+	for rows.Next() {
+		var n todo.Notification
+		err = rows.Scan(&n.Id, &n.TaskId, &n.TaskName, &n.Duedate)
+		if err != nil {
+			fmt.Println(err)
+			return notifications
+		}
+		notifications = append(notifications, n)
+	}
+	return notifications
+}
+
+func (todorepo todoRepository) AddNotification(wg *sync.WaitGroup, mu *sync.Mutex, data todo.Task) error {
+	defer wg.Done()
+	query := "INSERT INTO notifications (user_id,task_id,details,due_date) values (?,?,?,?)"
+	mu.Lock()
+	fmt.Println("Writing to database:", data)
+	_, err := todorepo.db.Exec(query, data.UserId, data.ID, data.Title, data.Duedate)
+	if err != nil {
+		fmt.Println("Error executing add notifications query: ", err.Error())
+		mu.Unlock()
+		return err
+	}
+	mu.Unlock()
+	return nil
+}
+
+// GetTasksNearDueDateButNotCompleted implements TodoRepository.
+func (todorepo todoRepository) GetTasksNearDueDateButNotCompleted() {
+	todos := todo.Todos{}
+	query := "select id,title,priority,due_date,user_id from tasks where DATEDIFF(due_date,NOW()) BETWEEN 0 and 4"
+	rows, err := todorepo.db.Query(query)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	for rows.Next() {
+		var t todo.Task
+		//var due_date sql.NullTime
+		err := rows.Scan(&t.ID, &t.Title, &t.Priority, &t.Duedate, &t.UserId)
+		if err != nil {
+			fmt.Println(err)
+		}
+		todos.TodoList = append(todos.TodoList, t)
+	}
+	log.Printf("List of tasks which are due is as follows: %v", todos.TodoList)
+
+	var wg sync.WaitGroup
+	// Create a Mutex
+	var mu sync.Mutex
+	for _, task := range todos.TodoList {
+		wg.Add(1)
+		go todorepo.AddNotification(&wg, &mu, task)
+	}
 }
 
 // DeleteTask implements TodoRepository.
