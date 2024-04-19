@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"todoapp/internal/handler/todohandler"
 	"todoapp/internal/handler/user"
+	"todoapp/internal/middleware"
 	todorepo "todoapp/internal/repository/todo_repo"
 	"todoapp/internal/repository/user_repo"
 	"todoapp/internal/service/todoservice"
@@ -27,13 +28,17 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB) {
 		//User apis
 		group.POST("/register", userHandler.Register)
 		group.POST("/login", userHandler.Login)
-
-		//task api
-		group.POST("/task/add", todo_Handler.AddTask)
-		group.PUT("/task/edit", todo_Handler.UpdateTask)
-		group.GET("/task/:id", todo_Handler.GetTaskDetails)
-		group.GET("/user/:id/tasks", todo_Handler.GetTodoList)
-		group.DELETE("/task/delete/:id", todo_Handler.DeleteTask)
-		group.GET("user/:id/notifications", todo_Handler.GetNotifications)
 	}
+	todoGroup := engine.Group("todoapp/api")
+	todoGroup.Use(middleware.AuthenticationMiddleware)
+	{
+		//task api
+		todoGroup.POST("/task/add", todo_Handler.AddTask)
+		todoGroup.PUT("/task/edit", todo_Handler.UpdateTask)
+		todoGroup.GET("/task/:id", todo_Handler.GetTaskDetails)
+		todoGroup.GET("/user/:id/tasks", todo_Handler.GetTodoList)
+		todoGroup.DELETE("/task/delete/:id", todo_Handler.DeleteTask)
+		todoGroup.GET("user/:id/notifications", todo_Handler.GetNotifications)
+	}
+
 }

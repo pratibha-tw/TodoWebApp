@@ -1,14 +1,11 @@
 package todohandler
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 	"todoapp/internal/database/model/todo"
 	errormessages "todoapp/internal/helpers/error_messages"
 	"todoapp/internal/service/todoservice"
-	"todoapp/internal/service/userservice"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,11 +24,7 @@ type todoHandler struct {
 }
 
 func (todoHandler todoHandler) AddTask(ctx *gin.Context) {
-	userId, err := AuthenticateUser(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, err.Error())
-		return
-	}
+	userId := ctx.GetInt("user_id")
 	var t todo.Task
 	if err := ctx.ShouldBindJSON(&t); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -51,11 +44,7 @@ func (todoHandler todoHandler) AddTask(ctx *gin.Context) {
 }
 
 func (todoHandler todoHandler) UpdateTask(ctx *gin.Context) {
-	userId, err := AuthenticateUser(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, err.Error())
-		return
-	}
+	userId := ctx.GetInt("user_id")
 	var t todo.Task
 	if err := ctx.ShouldBindJSON(&t); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -77,11 +66,7 @@ func (todoHandler todoHandler) UpdateTask(ctx *gin.Context) {
 }
 
 func (todoHandler todoHandler) GetTaskDetails(ctx *gin.Context) {
-	userId, err := AuthenticateUser(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, err.Error())
-		return
-	}
+	userId := ctx.GetInt("user_id")
 	id := ctx.Param("id")
 	Id, _ := strconv.Atoi(id)
 	response, err := todoHandler.todoService.GetTaskById(Id, userId)
@@ -98,11 +83,7 @@ func (todoHandler todoHandler) GetTaskDetails(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 func (todoHandler todoHandler) GetTodoList(ctx *gin.Context) {
-	loggedInUserId, err := AuthenticateUser(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, err.Error())
-		return
-	}
+	loggedInUserId := ctx.GetInt("user_id")
 	id := ctx.Param("id")
 	UserId, _ := strconv.Atoi(id)
 
@@ -127,14 +108,10 @@ func (todoHandler todoHandler) GetTodoList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 func (todoHandler todoHandler) DeleteTask(ctx *gin.Context) {
-	userId, err := AuthenticateUser(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, err.Error())
-		return
-	}
+	userId := ctx.GetInt("user_id")
 	id := ctx.Param("id")
 	taskId, _ := strconv.Atoi(id)
-	err = todoHandler.todoService.DeleteTask(taskId, userId)
+	err := todoHandler.todoService.DeleteTask(taskId, userId)
 
 	if err != nil {
 		switch err.Error() {
@@ -149,11 +126,7 @@ func (todoHandler todoHandler) DeleteTask(ctx *gin.Context) {
 }
 
 func (todoHandler todoHandler) GetNotifications(ctx *gin.Context) {
-	loggedInUserId, err := AuthenticateUser(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, err.Error())
-		return
-	}
+	loggedInUserId := ctx.GetInt("user_id")
 	id := ctx.Param("id")
 	UserId, _ := strconv.Atoi(id)
 
@@ -167,20 +140,4 @@ func (todoHandler todoHandler) GetNotifications(ctx *gin.Context) {
 }
 func NewTodoHandler(todoService todoservice.TodoService) TodoHandler {
 	return &todoHandler{todoService: todoService}
-}
-
-func AuthenticateUser(ctx *gin.Context) (int, error) {
-	authHeader := ctx.GetHeader("Authorization")
-	if authHeader == "" {
-		return 0, errors.New("authorization header is missing")
-	}
-	// Token is usually in the format: Bearer <token>
-	tokenString := strings.Split(authHeader, " ")[1]
-	ctx.Set("token", tokenString)
-
-	claims, err := userservice.VerifyJWT(tokenString)
-	if err != nil {
-		return 0, errors.New("user is not authorized")
-	}
-	return claims.UserId, nil
 }
