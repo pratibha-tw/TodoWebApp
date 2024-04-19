@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	user_model "todoapp/internal/database/model/user"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository interface {
@@ -28,6 +30,7 @@ func (user_repos userRepository) GetUser(username string) (user_model.User, erro
 }
 
 func (userRepository userRepository) CreateUser(u user_model.User) error {
+	password_hash, _ := bcrypt.GenerateFromPassword([]byte(u.Password), 14)
 	// Prepare the INSERT statement
 	stmt, err := userRepository.DB.Prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)")
 	if err != nil {
@@ -37,7 +40,7 @@ func (userRepository userRepository) CreateUser(u user_model.User) error {
 	defer stmt.Close()
 
 	// Execute the INSERT statement
-	_, err = stmt.Exec(u.Username, u.Email, u.Password)
+	_, err = stmt.Exec(u.Username, u.Email, password_hash)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
 		return err

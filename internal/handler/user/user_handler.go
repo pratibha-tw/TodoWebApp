@@ -26,13 +26,13 @@ func (u userHandler) Login(ctx *gin.Context) {
 	}
 	if jwtToken, err := u.userService.Login(userLogin); err != nil {
 		switch err.Error() {
-		case "please provide valid username/password":
+		case "please provide valid password":
 			ctx.JSON(http.StatusNotFound, err.Error())
 			return
 		case "error in JWT token generation":
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 		default:
-			ctx.JSON(http.StatusBadRequest, nil)
+			ctx.JSON(http.StatusBadRequest, "please provide valid username")
 		}
 	} else {
 		ctx.JSON(http.StatusOK, jwtToken)

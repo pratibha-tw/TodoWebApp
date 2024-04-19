@@ -8,6 +8,7 @@ import (
 	"todoapp/internal/repository/user_repo"
 
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var SECRET_KEY = []byte("gosecretkey")
@@ -27,8 +28,11 @@ func (userService userService) Login(u user.UserCredentials) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if res_user.Username != u.Username || res_user.Password != u.Password {
-		return "", errors.New("please provide valid username/password")
+	if res_user.Username != u.Username {
+		return "", errors.New("please provide valid username")
+	}
+	if err = bcrypt.CompareHashAndPassword([]byte(res_user.Password), []byte(u.Password)); err != nil {
+		return "", errors.New("please provide valid password")
 	}
 	u.UserId = res_user.UserId
 	token, err := GenerateJWT(u)
