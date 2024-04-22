@@ -1,7 +1,9 @@
 package user
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 	"time"
 	user_model "todoapp/internal/database/model/user"
 	"todoapp/internal/service/userservice"
@@ -13,11 +15,36 @@ import (
 type UserHandler interface {
 	Register(ctx *gin.Context)
 	Login(ctx *gin.Context)
+	Logout(ctx *gin.Context)
 }
 
 type userHandler struct {
 	userService userservice.UserService
 	redisClient *redis.Client
+}
+
+// Logout implements UserHandler.
+func (u userHandler) Logout(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" {
+		ctx.JSON(http.StatusUnauthorized, errors.New("authorization header is missing"))
+		ctx.Abort()
+		return
+	}
+	// Token is usually in the format: Bearer <token>
+	tokenString := strings.Split(authHeader, " ")[1]
+
+	ok, err := u.redisClient.Del(ctx, tokenString).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if ok == 1 {
+		ctx.JSON(http.StatusOK, "User is logged out successfully")
+		return
+	} else {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "This is not possible :("})
+	}
 }
 
 // Login implements UserHandler.

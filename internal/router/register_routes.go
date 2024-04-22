@@ -29,6 +29,7 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB, redisConn *redis.Clie
 		//User apis
 		group.POST("/register", userHandler.Register)
 		group.POST("/login", userHandler.Login)
+		group.POST("/logout", userHandler.Logout)
 	}
 	todoGroup := engine.Group("todoapp/api")
 	todoGroup.Use(middleware.AuthenticateMiddleware(redisConn))
