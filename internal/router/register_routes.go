@@ -11,13 +11,14 @@ import (
 	"todoapp/internal/service/userservice"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
-func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB) {
+func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB, redisConn *redis.Client) {
 
 	userRepo := user_repo.NewUserRepository(dbConnect)
 	userService := userservice.NewUserService(userRepo)
-	userHandler := user.NewUserHandler(userService)
+	userHandler := user.NewUserHandler(userService, redisConn)
 
 	todoRepo := todorepo.NewTodoRepository(dbConnect)
 	todoService := todoservice.NewTodoService(todoRepo)
@@ -30,7 +31,7 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB) {
 		group.POST("/login", userHandler.Login)
 	}
 	todoGroup := engine.Group("todoapp/api")
-	todoGroup.Use(middleware.AuthenticationMiddleware)
+	todoGroup.Use(middleware.AuthenticateMiddleware(redisConn))
 	{
 		//task api
 		todoGroup.POST("/task/add", todo_Handler.AddTask)

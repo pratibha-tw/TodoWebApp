@@ -15,6 +15,7 @@ var SourceCodeRootDirectory, _ = GetRootDirectory()
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
+	Redis    RedisConfig
 }
 
 type ServerConfig struct {
@@ -29,6 +30,12 @@ type DatabaseConfig struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Database string `yaml:"database"`
+}
+type RedisConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
 }
 
 func GetConfigs(cfg *Config) {

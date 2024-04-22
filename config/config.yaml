@@ -9,3 +9,9 @@ database:
   user: "root"
   password: "Wce@2022"
   database: "todoapp"
+
+redis:
+  host: "localhost"
+  port: 6379
+  password: "Redsecret"
+  db: 0

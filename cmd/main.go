@@ -10,8 +10,10 @@ import (
 
 func main() {
 	engine := gin.Default()
-	var config = config.Config{}
-	dbConnect := database.CreateConnection(config)
-	router.RegisterRoutes(engine, dbConnect)
+	var cfg = config.Config{}
+	config.GetConfigs(&cfg)
+	dbConnect := database.CreateConnection(cfg)
+	redisConn := database.CreateRedisConnection(cfg)
+	router.RegisterRoutes(engine, dbConnect, redisConn)
 	engine.Run("localhost:8080")
 }

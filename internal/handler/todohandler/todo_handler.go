@@ -24,7 +24,8 @@ type todoHandler struct {
 }
 
 func (todoHandler todoHandler) AddTask(ctx *gin.Context) {
-	userId := ctx.GetInt("user_id")
+	user_id := ctx.GetString("user_id")
+	userId, _ := strconv.Atoi(user_id)
 	var t todo.Task
 	if err := ctx.ShouldBindJSON(&t); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -44,7 +45,8 @@ func (todoHandler todoHandler) AddTask(ctx *gin.Context) {
 }
 
 func (todoHandler todoHandler) UpdateTask(ctx *gin.Context) {
-	userId := ctx.GetInt("user_id")
+	user_id := ctx.GetString("user_id")
+	userId, _ := strconv.Atoi(user_id)
 	var t todo.Task
 	if err := ctx.ShouldBindJSON(&t); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -66,7 +68,8 @@ func (todoHandler todoHandler) UpdateTask(ctx *gin.Context) {
 }
 
 func (todoHandler todoHandler) GetTaskDetails(ctx *gin.Context) {
-	userId := ctx.GetInt("user_id")
+	user_id := ctx.GetString("user_id")
+	userId, _ := strconv.Atoi(user_id)
 	id := ctx.Param("id")
 	Id, _ := strconv.Atoi(id)
 	response, err := todoHandler.todoService.GetTaskById(Id, userId)
@@ -83,10 +86,11 @@ func (todoHandler todoHandler) GetTaskDetails(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 func (todoHandler todoHandler) GetTodoList(ctx *gin.Context) {
-	loggedInUserId := ctx.GetInt("user_id")
+	user_id := ctx.GetString("user_id")
 	id := ctx.Param("id")
 	UserId, _ := strconv.Atoi(id)
 
+	loggedInUserId, _ := strconv.Atoi(user_id)
 	if loggedInUserId != UserId {
 		ctx.JSON(http.StatusForbidden, errormessages.ErrAccessDenied)
 		return
@@ -108,7 +112,8 @@ func (todoHandler todoHandler) GetTodoList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 func (todoHandler todoHandler) DeleteTask(ctx *gin.Context) {
-	userId := ctx.GetInt("user_id")
+	user_id := ctx.GetString("user_id")
+	userId, _ := strconv.Atoi(user_id)
 	id := ctx.Param("id")
 	taskId, _ := strconv.Atoi(id)
 	err := todoHandler.todoService.DeleteTask(taskId, userId)
@@ -126,7 +131,8 @@ func (todoHandler todoHandler) DeleteTask(ctx *gin.Context) {
 }
 
 func (todoHandler todoHandler) GetNotifications(ctx *gin.Context) {
-	loggedInUserId := ctx.GetInt("user_id")
+	user_id := ctx.GetString("user_id")
+	loggedInUserId, _ := strconv.Atoi(user_id)
 	id := ctx.Param("id")
 	UserId, _ := strconv.Atoi(id)
 
