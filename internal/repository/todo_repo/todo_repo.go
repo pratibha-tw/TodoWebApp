@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"sync"
 	"todoapp/internal/database/model/todo"
 	errormessages "todoapp/internal/helpers/error_messages"
 )
@@ -19,11 +18,35 @@ type TodoRepository interface {
 	DeleteTask(id int, userId int) error
 	GetNotifications(userId int) []todo.Notification
 	GetTasksNearDueDateButNotCompleted()
-	AddNotification(wg *sync.WaitGroup, mu *sync.Mutex, data todo.Task) error
+	//AddNotification(wg *sync.WaitGroup, mu *sync.Mutex, data todo.Task) error
+	AddNotifications([]todo.Task) error
 }
 
 type todoRepository struct {
 	db *sql.DB
+}
+
+// AddNotifications implements TodoRepository.
+func (todorepo todoRepository) AddNotifications(tasks []todo.Task) error {
+	count := len(tasks)
+	commacnt := count - 1
+	values := []any{}
+	query := "INSERT INTO notifications (user_id,task_id,details,due_date) values "
+	for i := 0; i < count; i++ {
+		query += "(?,?,?,?)"
+		values = append(values, tasks[i].UserId, tasks[i].ID, tasks[i].Title, tasks[i].Duedate)
+		if commacnt > 0 {
+			query += ","
+		}
+		commacnt--
+	}
+	query += ";"
+	_, err := todorepo.db.Exec(query, values...)
+	if err != nil {
+		fmt.Println("Error executing add notifications query: ", err.Error())
+		return err
+	}
+	return nil
 }
 
 func (todorepo todoRepository) GetNotifications(userId int) []todo.Notification {
@@ -47,25 +70,25 @@ func (todorepo todoRepository) GetNotifications(userId int) []todo.Notification 
 	return notifications
 }
 
-func (todorepo todoRepository) AddNotification(wg *sync.WaitGroup, mu *sync.Mutex, data todo.Task) error {
-	defer wg.Done()
-	query := "INSERT INTO notifications (user_id,task_id,details,due_date) values (?,?,?,?)"
-	mu.Lock()
-	fmt.Println("Writing to database:", data)
-	_, err := todorepo.db.Exec(query, data.UserId, data.ID, data.Title, data.Duedate)
-	if err != nil {
-		fmt.Println("Error executing add notifications query: ", err.Error())
-		mu.Unlock()
-		return err
-	}
-	mu.Unlock()
-	return nil
-}
+// func (todorepo todoRepository) AddNotification(wg *sync.WaitGroup, mu *sync.Mutex, data todo.Task) error {
+// 	defer wg.Done()
+// 	query := "INSERT INTO notifications (user_id,task_id,details,due_date) values (?,?,?,?)"
+// 	mu.Lock()
+// 	fmt.Println("Writing to database:", data)
+// 	_, err := todorepo.db.Exec(query, data.UserId, data.ID, data.Title, data.Duedate)
+// 	if err != nil {
+// 		fmt.Println("Error executing add notifications query: ", err.Error())
+// 		mu.Unlock()
+// 		return err
+// 	}
+// 	mu.Unlock()
+// 	return nil
+// }
 
 // GetTasksNearDueDateButNotCompleted implements TodoRepository.
 func (todorepo todoRepository) GetTasksNearDueDateButNotCompleted() {
 	todos := todo.Todos{}
-	query := "select id,title,priority,due_date,user_id from tasks where DATEDIFF(due_date,NOW()) BETWEEN 0 and 4"
+	query := "select id,title,priority,due_date,user_id from tasks where done=false and DATEDIFF(due_date,NOW()) BETWEEN 0 and 4"
 	rows, err := todorepo.db.Query(query)
 
 	if err != nil {
@@ -82,13 +105,14 @@ func (todorepo todoRepository) GetTasksNearDueDateButNotCompleted() {
 	}
 	log.Printf("List of tasks which are due is as follows: %v", todos.TodoList)
 
-	var wg sync.WaitGroup
+	/*var wg sync.WaitGroup
 	// Create a Mutex
 	var mu sync.Mutex
 	for _, task := range todos.TodoList {
 		wg.Add(1)
 		go todorepo.AddNotification(&wg, &mu, task)
-	}
+	}*/
+	todorepo.AddNotifications(todos.TodoList)
 }
 
 // DeleteTask implements TodoRepository.

@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"todoapp/internal/service/userservice"
@@ -51,8 +50,6 @@ func AuthenticateMiddleware(redisConn *redis.Client) gin.HandlerFunc {
 			return
 		}
 		userId, _ := redisConn.Get(ctx, tokenString).Result()
-		fmt.Println("authentication user id", userId)
-		fmt.Printf("type of id = %T\n", userId)
 		ctx.Set("user_id", userId)
 		// Call the next handler
 		ctx.Next()
