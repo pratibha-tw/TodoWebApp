@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 	user_model "todoapp/internal/database/model/user"
+	redisclient "todoapp/internal/database/redis_client"
 	"todoapp/internal/service/userservice"
 
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 )
 
 type UserHandler interface {
@@ -20,7 +20,7 @@ type UserHandler interface {
 
 type userHandler struct {
 	userService userservice.UserService
-	redisClient *redis.Client
+	redisClient redisclient.RedisClient
 }
 
 // Logout implements UserHandler.
@@ -85,6 +85,6 @@ func (u userHandler) Register(ctx *gin.Context) {
 	}
 }
 
-func NewUserHandler(userService userservice.UserService, redisClient *redis.Client) UserHandler {
+func NewUserHandler(userService userservice.UserService, redisClient redisclient.RedisClient) UserHandler {
 	return &userHandler{userService, redisClient}
 }

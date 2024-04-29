@@ -2,6 +2,7 @@ package router
 
 import (
 	"database/sql"
+	redisclient "todoapp/internal/database/redis_client"
 	"todoapp/internal/handler/todohandler"
 	"todoapp/internal/handler/user"
 	"todoapp/internal/middleware"
@@ -18,7 +19,8 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB, redisConn *redis.Clie
 
 	userRepo := user_repo.NewUserRepository(dbConnect)
 	userService := userservice.NewUserService(userRepo)
-	userHandler := user.NewUserHandler(userService, redisConn)
+	redisClt := redisclient.NewRedisClient(redisConn)
+	userHandler := user.NewUserHandler(userService, redisClt)
 
 	todoRepo := todorepo.NewTodoRepository(dbConnect)
 	todoService := todoservice.NewTodoService(todoRepo)

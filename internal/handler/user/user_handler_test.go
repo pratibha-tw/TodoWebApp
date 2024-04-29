@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"todoapp/internal/service/userservice/mocks"
-
 	user_model "todoapp/internal/database/model/user"
+	redis_mocks "todoapp/internal/database/redis_client/mocks"
+	"todoapp/internal/service/userservice/mocks"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +22,8 @@ func TestUserHandler(t *testing.T) {
 	t.Run("ShouldRegisterUserWithValidUsername", func(t *testing.T) {
 
 		userService := mocks.UserService{}
-		userHandler := NewUserHandler(&userService)
+		rds_clt := redis_mocks.RedisClient{}
+		userHandler := NewUserHandler(&userService, &rds_clt)
 		engine := gin.Default()
 		engine.POST("/todoapp/api/register", userHandler.Register)
 		requestBody, err := json.Marshal(u)
@@ -41,7 +42,8 @@ func TestUserHandler(t *testing.T) {
 	t.Run("ShouldReturnErrorForDuplicateUsernameRegistration", func(t *testing.T) {
 
 		userService := mocks.UserService{}
-		userHandler := NewUserHandler(&userService)
+		rds_clt := redis_mocks.RedisClient{}
+		userHandler := NewUserHandler(&userService, &rds_clt)
 		engine := gin.Default()
 		engine.POST("/todoapp/api/register", userHandler.Register)
 		expectedErr := errors.New("error in creating user")

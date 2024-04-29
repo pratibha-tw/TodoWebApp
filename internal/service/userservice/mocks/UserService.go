@@ -14,7 +14,7 @@ type UserService struct {
 }
 
 // Login provides a mock function with given fields: u
-func (_m *UserService) Login(u user.UserCredentials) (string, error) {
+func (_m *UserService) Login(u *user.UserCredentials) (string, error) {
 	ret := _m.Called(u)
 
 	if len(ret) == 0 {
@@ -23,16 +23,16 @@ func (_m *UserService) Login(u user.UserCredentials) (string, error) {
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(user.UserCredentials) (string, error)); ok {
+	if rf, ok := ret.Get(0).(func(*user.UserCredentials) (string, error)); ok {
 		return rf(u)
 	}
-	if rf, ok := ret.Get(0).(func(user.UserCredentials) string); ok {
+	if rf, ok := ret.Get(0).(func(*user.UserCredentials) string); ok {
 		r0 = rf(u)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(user.UserCredentials) error); ok {
+	if rf, ok := ret.Get(1).(func(*user.UserCredentials) error); ok {
 		r1 = rf(u)
 	} else {
 		r1 = ret.Error(1)
