@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"todoapp/internal/database/model/todo"
 	errormessages "todoapp/internal/helpers/error_messages"
@@ -103,7 +102,7 @@ func (todorepo todoRepository) GetTasksNearDueDateButNotCompleted() {
 		}
 		todos.TodoList = append(todos.TodoList, t)
 	}
-	log.Printf("List of tasks which are due is as follows: %v", todos.TodoList)
+	//log.Printf("List of tasks which are due is as follows: %v", todos.TodoList)
 
 	/*var wg sync.WaitGroup
 	// Create a Mutex

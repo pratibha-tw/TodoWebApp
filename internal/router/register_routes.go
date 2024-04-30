@@ -2,6 +2,8 @@ package router
 
 import (
 	"database/sql"
+	"fmt"
+	"time"
 	redisclient "todoapp/internal/database/redis_client"
 	"todoapp/internal/handler/todohandler"
 	"todoapp/internal/handler/user"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"github.com/robfig/cron/v3"
 )
 
 func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB, redisConn *redis.Client) {
@@ -25,7 +28,14 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB, redisConn *redis.Clie
 	todoRepo := todorepo.NewTodoRepository(dbConnect)
 	todoService := todoservice.NewTodoService(todoRepo)
 	todo_Handler := todohandler.NewTodoHandler(todoService)
-	go todoService.GetTasksNearDueDateButNotCompleted()
+
+	c := cron.New()
+	c.AddFunc("@every 15m", func() {
+		fmt.Println("frequency 15 min ", time.Now())
+		todoService.GetTasksNearDueDateButNotCompleted()
+	})
+	c.Start()
+
 	group := engine.Group("todoapp/api")
 	{
 		//User apis
