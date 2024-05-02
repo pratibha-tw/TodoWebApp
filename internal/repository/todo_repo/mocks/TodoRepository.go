@@ -116,8 +116,23 @@ func (_m *TodoRepository) GetTaskById(id int, userId int) (todo.Task, error) {
 }
 
 // GetTasksNearDueDateButNotCompleted provides a mock function with given fields:
-func (_m *TodoRepository) GetTasksNearDueDateButNotCompleted() {
-	_m.Called()
+func (_m *TodoRepository) GetTasksNearDueDateButNotCompleted() []todo.Task {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTasksNearDueDateButNotCompleted")
+	}
+
+	var r0 []todo.Task
+	if rf, ok := ret.Get(0).(func() []todo.Task); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]todo.Task)
+		}
+	}
+
+	return r0
 }
 
 // GetTodoListByUserId provides a mock function with given fields: id, criteria

@@ -16,6 +16,7 @@ type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Redis    RedisConfig
+	Email    EmailConfig
 }
 
 type ServerConfig struct {
@@ -36,6 +37,13 @@ type RedisConfig struct {
 	Port     int    `yaml:"port"`
 	Password string `yaml:"password"`
 	DB       int    `yaml:"db"`
+}
+
+type EmailConfig struct {
+	Host      string `yaml:"host"`
+	Port      string `yaml:"port"`
+	FromEmail string `yaml:"from"`
+	Password  string `yaml:"password"`
 }
 
 func GetConfigs(cfg *Config) {

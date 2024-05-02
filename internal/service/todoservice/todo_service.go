@@ -11,7 +11,7 @@ type TodoService interface {
 	GetTaskById(id int, userId int) (todo.Task, error)
 	GetTodoList(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error)
 	DeleteTask(id int, userId int) error
-	GetTasksNearDueDateButNotCompleted()
+	GetTasksNearDueDateButNotCompleted() []todo.Task
 	GetNotifications(userId int) []todo.Notification
 }
 type todoService struct {
@@ -24,8 +24,8 @@ func (todoService todoService) GetNotifications(userId int) []todo.Notification 
 }
 
 // GetTasksNearDueDateButNotCompleted implements TodoService.
-func (todoService todoService) GetTasksNearDueDateButNotCompleted() {
-	todoService.todoRepo.GetTasksNearDueDateButNotCompleted()
+func (todoService todoService) GetTasksNearDueDateButNotCompleted() []todo.Task {
+	return todoService.todoRepo.GetTasksNearDueDateButNotCompleted()
 }
 
 // DeleteTask implements TodoService.

@@ -1,25 +1,33 @@
 package router
 
 import (
-	"database/sql"
 	"fmt"
+	"sync"
 	"time"
+	"todoapp/config"
+	"todoapp/internal/database"
+	"todoapp/internal/database/model/todo"
 	redisclient "todoapp/internal/database/redis_client"
 	"todoapp/internal/handler/todohandler"
 	"todoapp/internal/handler/user"
+	emailbody "todoapp/internal/helpers/email_body"
 	"todoapp/internal/middleware"
 	todorepo "todoapp/internal/repository/todo_repo"
 	"todoapp/internal/repository/user_repo"
+	"todoapp/internal/service/emailservice"
 	"todoapp/internal/service/todoservice"
 	"todoapp/internal/service/userservice"
 
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron/v3"
 )
 
-func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB, redisConn *redis.Client) {
+func RegisterRoutes(engine *gin.Engine, cfg config.Config) {
 
+	dbConnect := database.CreateConnection(cfg)
+	redisConn := database.CreateRedisConnection(cfg)
+
+	emailservice := emailservice.NewEmailService(cfg.Email)
 	userRepo := user_repo.NewUserRepository(dbConnect)
 	userService := userservice.NewUserService(userRepo)
 	redisClt := redisclient.NewRedisClient(redisConn)
@@ -30,9 +38,27 @@ func RegisterRoutes(engine *gin.Engine, dbConnect *sql.DB, redisConn *redis.Clie
 	todo_Handler := todohandler.NewTodoHandler(todoService)
 
 	c := cron.New()
-	c.AddFunc("@every 15m", func() {
-		fmt.Println("frequency 15 min ", time.Now())
-		todoService.GetTasksNearDueDateButNotCompleted()
+	c.AddFunc("@every 5m", func() {
+		fmt.Println("frequency 5 min ", time.Now())
+		tasks := todoService.GetTasksNearDueDateButNotCompleted()
+		var uids []any
+		for _, t := range tasks {
+			uids = append(uids, t.UserId)
+		}
+		if len(tasks) > 0 {
+			email_list := userRepo.GetEmailIds(uids)
+			var wg sync.WaitGroup
+			for _, t := range tasks {
+				wg.Add(1)
+				go func(tk todo.Task) {
+					defer wg.Done()
+					body := emailbody.Generate_task_notification_email_body(email_list[tk.UserId].Username, tk)
+					emailservice.SendNotification(email_list[tk.UserId].Email, body)
+				}(t)
+
+			}
+		}
+
 	})
 	c.Start()
 

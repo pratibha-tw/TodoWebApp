@@ -16,7 +16,7 @@ type TodoRepository interface {
 	GetTodoListByUserId(id int, criteria todo.TodoSearchCriteria) (todo.Todos, error)
 	DeleteTask(id int, userId int) error
 	GetNotifications(userId int) []todo.Notification
-	GetTasksNearDueDateButNotCompleted()
+	GetTasksNearDueDateButNotCompleted() []todo.Task
 	//AddNotification(wg *sync.WaitGroup, mu *sync.Mutex, data todo.Task) error
 	AddNotifications([]todo.Task) error
 }
@@ -85,7 +85,7 @@ func (todorepo todoRepository) GetNotifications(userId int) []todo.Notification 
 // }
 
 // GetTasksNearDueDateButNotCompleted implements TodoRepository.
-func (todorepo todoRepository) GetTasksNearDueDateButNotCompleted() {
+func (todorepo todoRepository) GetTasksNearDueDateButNotCompleted() []todo.Task {
 	todos := todo.Todos{}
 	query := "select id,title,priority,due_date,user_id from tasks where done=false and DATEDIFF(due_date,NOW()) BETWEEN 0 and 4"
 	rows, err := todorepo.db.Query(query)
@@ -111,7 +111,11 @@ func (todorepo todoRepository) GetTasksNearDueDateButNotCompleted() {
 		wg.Add(1)
 		go todorepo.AddNotification(&wg, &mu, task)
 	}*/
-	todorepo.AddNotifications(todos.TodoList)
+	if len(todos.TodoList) > 0 {
+		todorepo.AddNotifications(todos.TodoList)
+	}
+
+	return todos.TodoList
 }
 
 // DeleteTask implements TodoRepository.

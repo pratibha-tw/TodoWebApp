@@ -31,6 +31,26 @@ func (_m *UserRepository) CreateUser(u user.User) error {
 	return r0
 }
 
+// GetEmailIds provides a mock function with given fields: uids
+func (_m *UserRepository) GetEmailIds(uids []interface{}) map[int]user.User {
+	ret := _m.Called(uids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEmailIds")
+	}
+
+	var r0 map[int]user.User
+	if rf, ok := ret.Get(0).(func([]interface{}) map[int]user.User); ok {
+		r0 = rf(uids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[int]user.User)
+		}
+	}
+
+	return r0
+}
+
 // GetUser provides a mock function with given fields: username
 func (_m *UserRepository) GetUser(username string) (user.User, error) {
 	ret := _m.Called(username)
