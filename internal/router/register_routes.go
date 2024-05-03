@@ -26,6 +26,7 @@ func RegisterRoutes(engine *gin.Engine, cfg config.Config) {
 
 	dbConnect := database.CreateConnection(cfg)
 	redisConn := database.CreateRedisConnection(cfg)
+	database.RunMigration(dbConnect)
 
 	emailservice := emailservice.NewEmailService(cfg.Email)
 	userRepo := user_repo.NewUserRepository(dbConnect)

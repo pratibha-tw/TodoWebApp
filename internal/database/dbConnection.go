@@ -7,6 +7,9 @@ import (
 	"log"
 	"todoapp/config"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -43,4 +46,28 @@ func CreateRedisConnection(cfg config.Config) *redis.Client {
 	}
 	fmt.Printf("successfully connected to redis %s", ping)
 	return client
+}
+
+func RunMigration(db *sql.DB) {
+	// Initialize migration instance
+	path := fmt.Sprintf("file:///%s/internal/database/migration", config.SourceCodeRootDirectory)
+
+	driver, err := mysql.WithInstance(db, &mysql.Config{})
+	if err != nil {
+		log.Fatalf("error in getting driver detains %v ", err)
+	}
+	fmt.Println(driver)
+	m, err := migrate.NewWithDatabaseInstance(
+		path,
+		"mysql", driver)
+	if err != nil {
+		log.Fatalf("Error initializing migration: %v", err)
+	}
+
+	// Apply migrations
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatalf("Error applying migrations: %v", err)
+	}
+
+	log.Println("Migrations applied successfully")
 }
