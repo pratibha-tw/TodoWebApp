@@ -24,6 +24,7 @@ import (
 
 func RegisterRoutes(engine *gin.Engine, cfg config.Config) {
 
+	time.Sleep(10 * time.Second)
 	dbConnect := database.CreateConnection(cfg)
 	redisConn := database.CreateRedisConnection(cfg)
 	database.RunMigration(dbConnect)

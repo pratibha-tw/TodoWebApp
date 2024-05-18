@@ -3,15 +3,15 @@ server:
   port: 8080
 
 database:
-  host: "localhost"
-  port: 3308
+  host: "mysql_db"
+  port: 3306
   name: "mysql"
   user: "root"
   password: "Wce@2022"
   database: "todoapp"
 
 redis:
-  host: "localhost"
+  host: "redis_db"
   port: 6379
   password: "Redsecret"
   db: 0
